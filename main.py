@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from imblearn.over_sampling import RandomOverSampler
 import tensorflow as tf
 from tensorflow import keras
@@ -34,6 +34,39 @@ df = df.loc[:, ['Student Age',
 if df.isnull().values.any() == True:
     df.dropna(inplace=True)
 
+# Drop rows with missing values
+df.dropna(inplace=True)
+
+# Define the columns
+categorical_columns = ['Scholarship type', 'Regular artistic or sports activity']
+numerical_columns = ['Student Age', 'Additional work', 'Total salary if available',
+                     'Weekly study hours', 'Attendance to classes',
+                     'Preparation to midterm exams 1',
+                     'Cumulative grade point average in the last semester (/4.00)']
+
+# Separate features and target
+X = df[numerical_columns + categorical_columns]
+y = df['GRADE']
+
+def scale_dataset(dataframe, oversample=False):
+    X = dataframe[numerical_columns + categorical_columns].values
+    y = dataframe['GRADE'].values
+
+    if oversample:
+        ros = RandomOverSampler()
+        X, y = ros.fit_resample(X, y)
+
+    # Preprocess data: scale numerical features and one-hot encode categorical features
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), numerical_columns),
+            ('cat', OneHotEncoder(), categorical_columns)
+        ])
+
+    X_transformed = preprocessor.fit_transform(X)
+
+    return X_transformed, y
+
 # Split data into training, validation, and test sets using pandas directly
 df_shuffled = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
@@ -43,19 +76,6 @@ validation_size = int(0.8 * len(df))
 train = df_shuffled.iloc[:train_size]
 validation = df_shuffled.iloc[train_size:validation_size]
 test = df_shuffled.iloc[validation_size:]
-
-
-def scale_dataset(dataframe, oversample=False):
-    X = dataframe[dataframe.columns[:-1]].values
-    y = dataframe[dataframe.columns[-1]].values
-
-    if oversample:
-        ros = RandomOverSampler()
-        X, y = ros.fit_resample(X, y)
-    data = np.hstack((X, np.reshape(y, (-1, 1))))
-
-    return data, X, y
-
 
 train, X_train, y_train = scale_dataset(train, True)
 valid, X_valid, y_valid = scale_dataset(validation, False)
