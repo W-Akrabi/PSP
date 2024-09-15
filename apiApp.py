@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
-import joblib
+from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
 # Load the model
-model = joblib.load('model.pkl')
+model = load_model('my_model.h5')
 
 
 @app.route('/predict', methods=['POST'])

@@ -1,14 +1,16 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.compose import ColumnTransformer
 from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.layers import Dense
+from tensorflow.python.keras.layers import Dense, Dropout
 from tensorflow.keras.utils import to_categorical
 
 from tensorflow.python.keras.engine import data_adapter
+import tensorflow.python.keras as tf_keras
+from keras import __version__
+tf_keras.__version__ = __version__
 
 
 def _is_distributed_dataset(ds):
@@ -93,13 +95,17 @@ input_shape = X_train.shape[1]  # Number of features after encoding
 
 model = Sequential([
     Dense(64, activation='relu', input_shape=(14,)),  # Adjust input_shape to match number of features
+    Dropout(0.01),
     Dense(32, activation='relu'),  # Hidden layer with 32 units
+    Dropout(0.001),
     Dense(16, activation='relu'),  # Hidden layer with 16 units
     Dense(8, activation='softmax')  # Output layer with 5 units (for 5 classes)
 ])
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-print(X_train.shape)
-print(y_train.shape)
+
+model.summary()
+
+model.save('my_model.h5')
 
 history = model.fit(
     X_train,
