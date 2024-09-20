@@ -105,8 +105,6 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 
 model.summary()
 
-model.save('my_model.h5')
-
 history = model.fit(
     X_train,
     y_train,
@@ -115,6 +113,10 @@ history = model.fit(
     validation_split=0.2,
     verbose=0
 )
+
+history_df = pd.DataFrame(history.history)
+history_df['epochs'] = history_df.index + 1  # Add epochs as a column
+history_df.to_csv('history.csv', index=False)
 
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
@@ -131,3 +133,5 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'val'], loc='upper left')
 plt.show()
+
+model.save('my_model.h5')
